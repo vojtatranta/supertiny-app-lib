@@ -37,7 +37,7 @@ app.get('/', function(req, res) {
 
   res.send(
     HTML
-    .replace('{APP}', renderers.render(DOMHelper, state).toString())
+    .replace('{APP}', renderers.app(DOMHelper, state).toString())
     .replace('{STATE}', JSON.stringify(state))
     .replace('{BUNDLE_PATH}', PROD ? '/generated/bundle.js' : '//localhost:9000/static/bundle.js')
     .replace('{STYLES_BUNDLE}', PROD ? '/generated/style.css' : '')

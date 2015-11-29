@@ -3,7 +3,7 @@ const inlineFn = require('./events')
 
 const form = (DOM, state, dispatch) => {
 
-  const onToDoFormSubmit = (el, ev) => {
+  const onToDoFormSubmit = (ev) => {
     ev.preventDefault()
     const txtArea = DOM.doc.getElementById('todo-textarea')
     if (txtArea.value.length == 0) return
@@ -15,7 +15,7 @@ const form = (DOM, state, dispatch) => {
 
   return DOM.form({
       id: 'todo-form',
-      onSubmit: inlineFn({ onToDoFormSubmit })
+      submit: onToDoFormSubmit
     },
     DOM.div({
       className: 'form-group',
@@ -37,13 +37,25 @@ const form = (DOM, state, dispatch) => {
 
 const renderItem = (DOM, todo, state, dispatch) => {
 
+  var deleteTodo = function(ev) {
+    dispatch({
+      TYPE: 'DELETE_TODO',
+      id: todo.id,
+      text: todo.text
+    })
+  }
+
   return DOM.li({
       className: todo.id == state.selectedTodoId ? 'todo-item todo--selected': 'todo-item'
     },
-    DOM.span({}, todo.text))
+    DOM.span({}, todo.text),
+    DOM.span({
+      click: deleteTodo,
+      className: 'pull-right close-icon'
+    }, 'X'))
 }
 
-const render = (DOM, state, dispatch) => {
+const app = (DOM, state, dispatch) => {
   
   return DOM.div({
       className: 'app'
@@ -60,5 +72,5 @@ const render = (DOM, state, dispatch) => {
 
 module.exports = {
   renderItem,
-  render
+  app
 }

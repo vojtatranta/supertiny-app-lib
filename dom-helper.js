@@ -11,7 +11,17 @@ module.exports = function(doc) {
   const createEl = (tag, attrs, content, children) => {
     var el = doc.createElement(tag)
     if (attrs) {
-      Object.keys(attrs).forEach(key => el.setAttribute(adjustKey(key), attrs[key]))
+      Object.keys(attrs).forEach(key => {
+        if (typeof attrs[key] != 'function') {
+          el.setAttribute(adjustKey(key), attrs[key])
+        } else {
+          if (!el.events) {
+            el.events = {}
+          }
+          el.events[key] = attrs[key]
+          el.addEventListener(key, attrs[key])
+        }
+      })
     }
   
     if (content) {

@@ -1,7 +1,5 @@
 var singlElements = ['img']
 
-var allowedKeys = ['onClick', 'onKeyDown', 'onKeyPress', 'onBlur', 'onFocus', 'onKeyUp']
-
 const element = (tag) => {
   var children = []
   var attrs = {}
