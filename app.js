@@ -5,10 +5,11 @@ import { app, renderlayer } from './renderers'
 
 import sass from './styles/style.sass'
 
+
 const flattenElementTree = (elements, parentIndex = []) => {
   var flatElements = []
   elements = Array.prototype.slice.apply(elements)
-  for (var i in elements) {
+  for (let i in elements) {
     const element = elements[i]
     const index = parentIndex.concat([i])
     flatElements.push([element, index])
@@ -21,7 +22,7 @@ const flattenElementTree = (elements, parentIndex = []) => {
 
 const getElementAndHandler = (elements) => {
   var matchedElements = []
-  for(const elementAndPath of elements) {
+  for(let elementAndPath of elements) {
     const [element, path] = elementAndPath
     if (element.events) {
       const mapped = Object.keys(element.events).map(eventType => {
@@ -34,14 +35,23 @@ const getElementAndHandler = (elements) => {
 }
 
 const getElementByPath = (path, rootEl) => {
-  return path.reduce((prev, next) => {
-    if (next) {
-      return prev.children[next]
-    } else {
-      return prev
-    }
+  return path.reduce((element, nextIndex) => {
+      return element.children[nextIndex]
   }, rootEl)
 }
+
+
+const cachedRender = (app, el) => {
+  let renderedApp = null
+
+  return (...args) => {
+    let renderedApp = app(...args)
+
+    return el.appendChild()
+  }
+
+}
+
 
 const render = (vdom, el, onServerRendered = false) => {
 
@@ -66,6 +76,15 @@ const render = (vdom, el, onServerRendered = false) => {
 
 const DOM = createDOM(document)
 
+const addText = (addText, action) => {
+  switch (action.TYPE) {
+    case 'ADD_TEXT_CHANGE':
+      return action.value
+  }
+  return addText
+}
+
+
 const todos = (todos, action) => {
   switch(action.TYPE) {
     case 'ADD_TODO':
@@ -73,39 +92,50 @@ const todos = (todos, action) => {
         {
           text: action.text,
           id: new Date().getTime()
-        } 
+        }
       ])
+    case 'ADD_BATCH_TODO':
+      return action.todos
     case 'DELETE_TODO':
       return todos.filter(todo => {
         return todo.id != action.id
       })
   }
 
-  return state
+  return todos
 }
 
-const store = createStore({ todos })
+const store = createStore({ todos, addText })
 
-let state = window.__INITIAL__
+let initialState = window.__INITIAL__
 
-const dispatch = createDispatch(state, store)
+const dispatch = createDispatch(initialState, store)
 const el = document.getElementById('app')
 
+window.lotsOfTodos = () => {
+  var todos = []
+  for (var i = 0, l = 1000; i < l; i++) {
+    todos.push({
+      text: "This is #" + i,
+      id: i
+    })
+  }
 
-render(app(DOM, state, dispatch), el, true)
+  dispatch({
+    TYPE: 'ADD_BATCH_TODO',
+    todos
+  })
+}
+
 store.listen(state => {
   console.time('render')
-  render(app(DOM, state, dispatch), el)
+  render(app({ DOM, dispatch }, state), el)
   console.timeEnd('render')
 })
 
 
 //bind listeners + is server-side / not
-if (el.innerHTML.length == 0) {
-  dispatch({
-    type: 'INIT'
-  })
-} else {
-}
+render(app({ DOM, dispatch }, initialState), el, el.innerHTML.length)
+
 
 

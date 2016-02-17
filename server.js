@@ -19,25 +19,11 @@ var HTML = fs.readFileSync('./index.html', 'utf-8')
 app.get('/', function(req, res) {
   const DOMHelper = createDom(doc)
 
-  const state = {
-    name: 'Vojta Tranta',
-    email: 'vojta.tranta@gmail.com',
-    todos: [
-      {
-        text: 'First todo',
-        id: 'xyfd54584',
-      },
-      {
-        text: 'Second todo',
-        id: 'dsf55554'
-      }
-    ],
-    selectedTodoId: null
-  }
+  const state = require('./initial-state.js')
 
   res.send(
     HTML
-    .replace('{APP}', renderers.app(DOMHelper, state).toString())
+    .replace('{APP}', '')
     .replace('{STATE}', JSON.stringify(state))
     .replace('{BUNDLE_PATH}', PROD ? '/generated/bundle.js' : '//localhost:9000/static/bundle.js')
     .replace('{STYLES_BUNDLE}', PROD ? '/generated/style.css' : '')

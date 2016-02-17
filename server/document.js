@@ -33,6 +33,10 @@ const element = (tag) => {
 
     setAttribute(key, value) {
       attrs[key] = value
+    },
+
+    addEventListener() {
+
     }
   }
 }

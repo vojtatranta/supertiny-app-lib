@@ -1,4 +1,4 @@
-module.exports = function(doc) {
+export default (doc) => {
 
   const adjustKey = (key) => {
     if (key.toLowerCase() == 'classname') {
@@ -23,12 +23,12 @@ module.exports = function(doc) {
         }
       })
     }
-  
+
     if (content) {
       el.appendChild(
         doc.createTextNode(content))
     }
-  
+
     if (children) {
       children.forEach(child => {
         if (Array.isArray(child)) {
@@ -40,10 +40,9 @@ module.exports = function(doc) {
         }
       })
     }
-  
     return el
-  } 
-    
+  }
+
   var methods = {}
   new Array('span', 'p', 'div', 'h1', 'h2', 'h3', 'strong', 'li', 'ul', 'img', 'form', 'input', 'textarea', 'button').forEach(function(tagName) {
     methods[tagName] = function(attrs, content, children) {

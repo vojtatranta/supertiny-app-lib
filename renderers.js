@@ -1,15 +1,40 @@
-const inlineFn = require('./events')
+
+const areSame = (lastProps, props) => {
+  if (lastProps === props) {
+    return true
+  }
+
+  return Object.keys(props).every(key => {
+    return lastProps[key] === props[key]
+  })
+}
 
 
-const form = (DOM, state, dispatch) => {
+const shouldComponentUpdate = (component) => {
+  let lastProps = {},
+      renderedComponent = null
+
+  return (...args) => {
+    if (!areSame(lastProps, args[1]) || !renderedComponent) {
+      lastProps = args[1]
+      renderedComponent = component(...args)
+      return renderedComponent
+    } else {
+      return renderedComponent
+    }
+  }
+}
+
+
+const form = shouldComponentUpdate(({ DOM, dispatch }, { addText = '' }) => {
 
   const onToDoFormSubmit = (ev) => {
     ev.preventDefault()
-    const txtArea = DOM.doc.getElementById('todo-textarea')
-    if (txtArea.value.length == 0) return
+    const txt = DOM.doc.getElementById('todo-textarea')
+    if (txt.value.length == 0) return
     dispatch({
       TYPE: 'ADD_TODO',
-      text: txtArea.value
+      text: txt.value
     })
   }
 
@@ -19,9 +44,17 @@ const form = (DOM, state, dispatch) => {
     },
     DOM.div({
       className: 'form-group',
-    }, DOM.textarea({
+    }, DOM.input({
         id: 'todo-textarea',
-        className: 'todo-textarea'
+        className: 'todo-textarea',
+        type: 'text',
+        value: addText,
+        keyup: (ev) => {
+          dispatch({
+            TYPE: 'ADD_TEXT_CHANGE',
+            value: ev.target.value
+          })
+        }
       })
     ),
     DOM.div({
@@ -32,12 +65,12 @@ const form = (DOM, state, dispatch) => {
       }, 'Add TODO')
     )
   )
-}
+})
 
 
-const renderItem = (DOM, todo, state, dispatch) => {
+const renderItem = shouldComponentUpdate(({ DOM, dispatch}, { selectedTodoId, todo }) => {
 
-  var deleteTodo = function(ev) {
+  const deleteTodo = (ev) => {
     dispatch({
       TYPE: 'DELETE_TODO',
       id: todo.id,
@@ -46,31 +79,36 @@ const renderItem = (DOM, todo, state, dispatch) => {
   }
 
   return DOM.li({
-      className: todo.id == state.selectedTodoId ? 'todo-item todo--selected': 'todo-item'
+      className: todo.id == selectedTodoId ? 'todo-item todo--selected': 'todo-item'
     },
     DOM.span({}, todo.text),
     DOM.span({
       click: deleteTodo,
       className: 'pull-right close-icon'
     }, 'X'))
-}
+})
 
-const app = (DOM, state, dispatch) => {
-  
+const todosList = shouldComponentUpdate(({ DOM, dispatch }, { selectedTodoId, todos }) => {
+  return DOM.ul({
+      className: 'todo-list',
+    }, todos.map(todo => renderItem({ DOM,  dispatch }, { selectedTodoId, todo }))
+  )
+})
+
+const app = ({ DOM, dispatch }, state) => {
+
   return DOM.div({
       className: 'app'
     },
     DOM.h1({},
       'What needs to be done?'),
-    form(DOM, state, dispatch),
-    DOM.ul({
-      className: 'todo-list',
-    }, state.todos.map(todo => renderItem(DOM, todo, state, dispatch)))
+    form({ DOM, dispatch }, { addText: state.addText }),
+    todosList({ DOM, dispatch }, { todos: state.todos, selectedTodoId: state.selectedTodoId })
   )
 }
 
 
-module.exports = {
+export default {
   renderItem,
   app
 }
