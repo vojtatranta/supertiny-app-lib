@@ -41,18 +41,6 @@ const getElementByPath = (path, rootEl) => {
 }
 
 
-const cachedRender = (app, el) => {
-  let renderedApp = null
-
-  return (...args) => {
-    let renderedApp = app(...args)
-
-    return el.appendChild()
-  }
-
-}
-
-
 const render = (vdom, el, onServerRendered = false) => {
 
   if (onServerRendered) {
@@ -105,16 +93,66 @@ const todos = (todos, action) => {
   return todos
 }
 
-const store = createStore({ todos, addText })
+const location = (location, action) => {
+  switch(action.TYPE) {
+    case 'LOCATION_CHANGE':
+      if (location != action.location) {
+        return action.location
+      }
+  }
+  return location
+}
+
+const store = createStore({ todos, addText, location })
 
 let initialState = window.__INITIAL__
+initialState.location = window.location.pathname
 
 const dispatch = createDispatch(initialState, store)
 const el = document.getElementById('app')
 
-window.lotsOfTodos = () => {
+const createHistory = (window, history, location, dispatch) => {
+
+  const dispatchLocationChange = () => {
+    dispatch({
+      TYPE: 'LOCATION_CHANGE',
+      location: location.pathname
+    })
+  }
+
+  const back = () => {
+    history.back()
+    dispatchLocationChange()
+  }
+
+  const forward = () => {
+    history.forward()
+    dispatchLocationChange()
+  }
+
+  const change = (nextLocation) => {
+    history.pushState(null, null, nextLocation)
+    dispatchLocationChange()
+  }
+
+  const locationChangeListener = (ev) => {
+    dispatchLocationChange()
+  }
+
+  window.onpopstate = locationChangeListener
+
+  return {
+    back,
+    forward,
+    change
+  }
+}
+
+const history = createHistory(window, window.history, window.location, dispatch)
+
+window.lotsOfTodos = (howMuch = 1000) => {
   var todos = []
-  for (var i = 0, l = 1000; i < l; i++) {
+  for (var i = 0, l = howMuch; i < l; i++) {
     todos.push({
       text: "This is #" + i,
       id: i
@@ -129,13 +167,13 @@ window.lotsOfTodos = () => {
 
 store.listen(state => {
   console.time('render')
-  render(app({ DOM, dispatch }, state), el)
+  render(app({ history, DOM, dispatch }, state), el)
   console.timeEnd('render')
 })
 
 
 //bind listeners + is server-side / not
-render(app({ DOM, dispatch }, initialState), el, el.innerHTML.length)
+render(app({ history, DOM, dispatch }, initialState), el, el.innerHTML.length)
 
 
 

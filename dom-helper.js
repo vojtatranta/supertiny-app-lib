@@ -44,7 +44,7 @@ export default (doc) => {
   }
 
   var methods = {}
-  new Array('span', 'p', 'div', 'h1', 'h2', 'h3', 'strong', 'li', 'ul', 'img', 'form', 'input', 'textarea', 'button').forEach(function(tagName) {
+  new Array('span', 'a', 'p', 'div', 'h1', 'h2', 'h3', 'strong', 'li', 'ul', 'img', 'form', 'input', 'textarea', 'button').forEach(function(tagName) {
     methods[tagName] = function(attrs, content, children) {
       if (Array.isArray(content)) {
         children = content

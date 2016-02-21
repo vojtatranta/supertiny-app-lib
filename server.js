@@ -16,7 +16,7 @@ app.use(express.static('./dist'))
 
 var HTML = fs.readFileSync('./index.html', 'utf-8')
 
-app.get('/', function(req, res) {
+app.get('*', function(req, res) {
   const DOMHelper = createDom(doc)
 
   const state = require('./initial-state.js')
