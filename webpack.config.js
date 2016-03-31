@@ -1,31 +1,36 @@
 var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var PROD = JSON.parse(process.env.PROD || "0");
+var PROD = process.env.NODE_ENV == 'production'
 
 module.exports = {
-  devtool: PROD ? '' : 'cheap-module-eval-source-map',
+  devtool: PROD ? null : 'cheap-module-eval-source-map',
   entry: PROD ? './app' : [
     'webpack-dev-server/client?http://localhost:9000',
     'webpack/hot/dev-server',
     './'
   ],
   output: {
-    path: path.join(__dirname, 'dist', 'generated'),
+    path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
-    publicPath: 'http://localhost:9000/static/'
+    publicPath: PROD ? null : 'http://localhost:9000/static/'
   },
-  plugins: PROD ? 
+  plugins: PROD ?
     [
       new ExtractTextPlugin('style.css', {allChunks: true}),
-      new webpack.optimize.UglifyJsPlugin({minimize: true, comments: false})
-    ] : 
+      new webpack.optimize.UglifyJsPlugin({minimize: true, comments: false}),
+      new webpack.DefinePlugin({
+        'process.env': {
+          'NODE_ENV': PROD
+        }
+      })
+    ] :
     [
       new webpack.HotModuleReplacementPlugin(),
       new webpack.NoErrorsPlugin()
   ],
   resolve: {
-    extensions: ['', '.js', '.cjsx', '.coffee']
+    extensions: ['', '.js']
   },
   module: {
     loaders: [{
@@ -33,16 +38,6 @@ module.exports = {
       loaders: PROD ? ['babel'] : ['babel'],
       exclude: /node_modules/,
       include: __dirname
-    }, {
-      test: /\.js$/,
-      loaders: ['babel'],
-      include: path.join(__dirname, '..', '..', 'src')
-    }, {
-      test: /\.cjsx$/,
-      loaders: PROD ? ['coffee-loader', 'cjsx'] : ['coffee-loader', 'cjsx']
-    }, {
-      test: /\.coffee$/,
-      loaders: ['coffee-loader']
     },
     {
       test: /\.sass$/,
