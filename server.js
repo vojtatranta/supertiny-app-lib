@@ -14,7 +14,7 @@ const app = express()
 app.use(compress())
 app.use(express.static('./dist'))
 
-var HTML = fs.readFileSync('./index.html', 'utf-8')
+var HTML = fs.readFileSync('./server_index.html', 'utf-8')
 
 app.get('*', function(req, res) {
   const DOMHelper = createDom(doc)
@@ -25,8 +25,8 @@ app.get('*', function(req, res) {
     HTML
     .replace('{APP}', '')
     .replace('{STATE}', JSON.stringify(state))
-    .replace('{BUNDLE_PATH}', PROD ? '/generated/bundle.js' : '//localhost:9000/static/bundle.js')
-    .replace('{STYLES_BUNDLE}', PROD ? '/generated/style.css' : '')
+    .replace('{BUNDLE_PATH}', PROD ? '/bundle.js' : '//localhost:9000/static/bundle.js')
+    .replace('{STYLES_BUNDLE}', PROD ? '/style.css' : '')
   )
 
 })

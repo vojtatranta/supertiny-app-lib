@@ -16,7 +16,7 @@ const shouldComponentUpdate = (component) => {
 
   return (...args) => {
     if (!areSame(lastProps, args[1]) || !renderedComponent) {
-      lastProps = args[1]
+      lastProps = args[0]
       renderedComponent = component(...args)
       return renderedComponent
     } else {
@@ -26,7 +26,7 @@ const shouldComponentUpdate = (component) => {
 }
 
 
-const form = shouldComponentUpdate(({ DOM, dispatch }, { addText = '' }) => {
+const form = shouldComponentUpdate(({ addText = '' }, { DOM, dispatch }) => {
 
   const onToDoFormSubmit = (ev) => {
     ev.preventDefault()
@@ -68,7 +68,7 @@ const form = shouldComponentUpdate(({ DOM, dispatch }, { addText = '' }) => {
 })
 
 
-const renderItem = shouldComponentUpdate(({ DOM, dispatch}, { selectedTodoId, todo }) => {
+const renderItem = shouldComponentUpdate(({ selectedTodoId, todo }, { DOM, dispatch}) => {
 
   const deleteTodo = (ev) => {
     dispatch({
@@ -88,14 +88,14 @@ const renderItem = shouldComponentUpdate(({ DOM, dispatch}, { selectedTodoId, to
     }, 'X'))
 })
 
-const todosList = shouldComponentUpdate(({ DOM, dispatch }, { selectedTodoId, todos }) => {
+const todosList = shouldComponentUpdate(({ selectedTodoId, todos }, { DOM, dispatch }) => {
   return DOM.ul({
       className: 'todo-list',
-    }, todos.map(todo => renderItem({ DOM,  dispatch }, { selectedTodoId, todo }))
+    }, todos.map(todo => renderItem({ selectedTodoId, todo }, { DOM,  dispatch }))
   )
 })
 
-const link = shouldComponentUpdate(({ history, DOM, dispatch }, { path, text }) => {
+const link = shouldComponentUpdate(({ path, text }, { history, DOM, dispatch }) => {
 
   const handleClick = (ev) => {
     ev.preventDefault()
@@ -109,11 +109,11 @@ const link = shouldComponentUpdate(({ history, DOM, dispatch }, { path, text }) 
   }, text)
 })
 
-const router = shouldComponentUpdate((services, state) => {
-  return services.components[state.location](services, state)
+const router = shouldComponentUpdate((state, services) => {
+  return services.components[state.location](state, services)
 })
 
-const todos = shouldComponentUpdate((services, state) => {
+const todos = shouldComponentUpdate((state, services) => {
   const { DOM } = services
   return DOM.div({
       className: 'app'
@@ -121,24 +121,27 @@ const todos = shouldComponentUpdate((services, state) => {
     DOM.h1({},
       'What needs to be done?'),
     DOM.div({},
-      link(services, { text: 'O aplikaci', 'path': '/about' })),
-    form(services, { addText: state.addText }),
-    todosList(services, { todos: state.todos, selectedTodoId: state.selectedTodoId })
+      link({ text: 'O aplikaci', 'path': '/about' }, services)),
+    form({ addText: state.addText }, services),
+    todosList({ todos: state.todos, selectedTodoId: state.selectedTodoId }, services)
   )
 })
 
-const about = ({ DOM, dispatch }, state) => {
+const about = (state, { DOM, dispatch }) => {
   return DOM.h1({}, 'This is about page')
 }
 
-const app = (services, state) => {
+const app = (state, services) => {
 
-  return router(Object.assign(services, {
-    components: {
-      '/': todos,
-      '/about': about
-    }
-  }), state)
+  return router(
+    state,
+    Object.assign(services, {
+      components: {
+        '/': todos,
+        '/about': about
+      }
+    })
+  )
 }
 
 

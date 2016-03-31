@@ -3,7 +3,7 @@ import createDispatch from './lib/create-dispatch'
 import createStore from './lib/create-store'
 import { app, renderlayer } from './renderers'
 
-import sass from './styles/style.sass'
+import sass from './styles/style.css'
 
 
 const replaceElement = (oldEl, newEl) => {
@@ -42,7 +42,7 @@ const getElementAndHandler = (elements) => {
   for(let elementAndPath of elements) {
     const [element, path] = elementAndPath
     if (element.events) {
-      const mapped = Object.keys(element.events).map(eventType => [path, eventType, element.events[eventType]])
+      let mapped = Object.keys(element.events).map(eventType => [path, eventType, element.events[eventType]])
       matchedElements = matchedElements.concat(mapped)
     }
   }
@@ -57,11 +57,11 @@ const getElementByPath = (path, rootEl) => {
 }
 
 
-const debounce = (timeout, fn) => {
+const debounce = (duration, fn) => {
   var timeout = null
   return (...args) => {
     clearTimeout(timeout)
-    timeout = setTimeout(() => fn(...args), timeout)
+    timeout = setTimeout(() => fn(...args), duration)
   }
 }
 
@@ -70,9 +70,8 @@ const async = (fn) => {
 }
 
 
-const render = async((domFn, domFnArgs, el, firstTime = false) => {
+const render = async((vdom, el, firstTime = false) => {
   let t0 = performance.now()
-  const vdom = domFn.apply(null, domFnArgs)
   if (firstTime && el.innerHTML.length > 0) {
     const flattenedElements = flattenElementTree(el, [ vdom ])
     const matchedEvents = getElementAndHandler(flattenedElements)
@@ -200,13 +199,13 @@ window.lotsOfTodos = (howMuch = 1000) => {
 
 store.listen(state => {
   console.time('render')
-  render(app({ history, DOM, dispatch }, state), el)
+  render(app(state, { history, DOM, dispatch }), el)
   console.timeEnd('render')
 })
 
 
 //bind listeners + is server-side / not
-render(app({ history, DOM, dispatch }, initialState), el, el.innerHTML.length)
+render(app(initialState, { history, DOM, dispatch }), el, el.innerHTML.length)
 
 
 

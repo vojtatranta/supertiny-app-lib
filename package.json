@@ -5,13 +5,10 @@
   "main": "app.js",
   "engine": "node 5.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "babel-node server.js",
-    "build": "PROD=1 webpack",
-    "dev": "babel-node webpack-server.js",
-    "server": "node server.js",
-    "prod": "PROD=1 node server.js",
-    "babel-node": "babel-node --stage 0 --ignore='foo|bar|baz'"
+    "prepublish": "npm run build",
+    "build": "NODE_ENV=production webpack -p",
+    "webpack-server": "webpack-dev-server --hot --progress --colors --port 9000"
   },
   "dependencies": {
     "compression": "^1.6.0",
