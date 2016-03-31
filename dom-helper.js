@@ -36,7 +36,13 @@ export default (doc) => {
             el.appendChild(subChild)
           })
         } else {
-          el.appendChild(child)
+          if (child['state'] && child['component']) {
+            let dummyEl = doc.createElement('div')
+            dummyEl.elementFn = child
+            el.appendChild(dummyEl)
+          } else {
+            el.appendChild(child)
+          }
         }
       })
     }

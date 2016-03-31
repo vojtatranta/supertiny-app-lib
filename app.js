@@ -6,15 +6,32 @@ import { app, renderlayer } from './renderers'
 import sass from './styles/style.sass'
 
 
-const flattenElementTree = (elements, parentIndex = []) => {
+const replaceElement = (oldEl, newEl) => {
+  oldEl.parentNode.replaceChild(newEl, oldEl)
+}
+
+const createElementUpdate = (rootEl, path, componentFn) => {
+  return (state) => {
+    let element = getElementByPath(path, rootEl)
+    replaceElement(element, componentFn(createElementUpdate(rootEl, path, componentFn), state))
+  }
+}
+
+const flattenElementTree = (rootEl, elements, parentIndex = []) => {
   var flatElements = []
   elements = Array.prototype.slice.apply(elements)
   for (let i in elements) {
-    const element = elements[i]
     const index = parentIndex.concat([i])
+    let element = elements[i]
+    if (Boolean(element.elementFn)) {
+      const update = createElementUpdate(rootEl, index, element.elementFn.component)
+      let renderedElement = element.elementFn.component(update, element.elementFn.state)
+      replaceElement(element, renderedElement)
+      element = renderedElement
+    }
     flatElements.push([element, index])
     if (element.children) {
-      flatElements = flatElements.concat(flattenElementTree(element.children, index))
+      flatElements = flatElements.concat(flattenElementTree(rootEl, element.children, index))
     }
   }
   return flatElements
@@ -25,9 +42,7 @@ const getElementAndHandler = (elements) => {
   for(let elementAndPath of elements) {
     const [element, path] = elementAndPath
     if (element.events) {
-      const mapped = Object.keys(element.events).map(eventType => {
-        return [path, eventType, element.events[eventType]]
-      })
+      const mapped = Object.keys(element.events).map(eventType => [path, eventType, element.events[eventType]])
       matchedElements = matchedElements.concat(mapped)
     }
   }
@@ -35,17 +50,32 @@ const getElementAndHandler = (elements) => {
 }
 
 const getElementByPath = (path, rootEl) => {
-  return path.reduce((element, nextIndex) => {
-      return element.children[nextIndex]
+  window.e = rootEl
+  return path.reduce((element, nextIndex) =>{
+    return element.children[nextIndex]
   }, rootEl)
 }
 
 
-const render = (vdom, el, onServerRendered = false) => {
+const debounce = (timeout, fn) => {
+  var timeout = null
+  return (...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => fn(...args), timeout)
+  }
+}
 
-  if (onServerRendered) {
-    const flatten = flattenElementTree([vdom])
-    const matchedEvents = getElementAndHandler(flatten)
+const async = (fn) => {
+  return (...args) => fn(...args)
+}
+
+
+const render = async((domFn, domFnArgs, el, firstTime = false) => {
+  let t0 = performance.now()
+  const vdom = domFn.apply(null, domFnArgs)
+  if (firstTime && el.innerHTML.length > 0) {
+    const flattenedElements = flattenElementTree(el, [ vdom ])
+    const matchedEvents = getElementAndHandler(flattenedElements)
 
     for (const matchedEvent of matchedEvents) {
       const [ pathToElement, eventType, handler ] = matchedEvent
@@ -57,10 +87,13 @@ const render = (vdom, el, onServerRendered = false) => {
       }
     }
   } else {
+    setTimeout(() => flattenElementTree(el, [ vdom ]), 0)
     el.innerHTML = ''
     el.appendChild(vdom)
   }
-}
+  let t1 = performance.now()
+  console.log('render', (t1 - t0).toFixed(4))
+})
 
 const DOM = createDOM(document)
 
