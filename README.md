@@ -1,4 +1,4 @@
-# Supertiny redux-like, react-like app library
+# Supertiny redux-like, react-like app library TRY IT! (http://vojtatranta.github.io/supertiny-app-lib/)[http://vojtatranta.github.io/supertiny-app-lib/]
 
 I was terryfied by size of all Todo apps.
 
