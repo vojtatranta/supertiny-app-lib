@@ -161,7 +161,15 @@ const todos = shouldComponentUpdate((state, services) => {
 })
 
 const about = (state, { DOM, dispatch }) => {
-  return DOM.h1({}, 'This is about page')
+  return DOM.div({},
+    DOM.h1({}, 'Supertiny application library?'),
+    DOM.p({}, 'What does "supertiny" stands for? Well, just check your dev tools and go to "Network tab".'),
+    DOM.p({}, 'You will see that whole bundle for this very small todo app weights just around ', DOM.strong({}, '7KB!')),
+    DOM.h2({}, 'What can it do?'),
+    DOM.p({}, 'Well, not much. There is no DOM diffing so app tree is rerendered every time. However shouldComponentupdate decorator works well, so app is still fast'),
+    DOM.p({}, 'And as you can see, routing works well either, but it does not support older browser. Well, I wanted to keep this library with no dependency...'),
+    DOM.p({}, "For more info, check githup repo's ", DOM.a({href: 'https://github.com/vojtatranta/supertiny-app-lib'}, 'README.md.'))
+  )
 }
 
 const app = (state, services) => {
