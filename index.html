@@ -3,11 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>My own React and 'redux'</title>
-  <link rel="stylesheet" type="text/css" href="/dist/style.css">
+  <link rel="stylesheet" type="text/css" href="./dist/style.css">
 </head>
 <body>
   <div id="app"></div>
 </body>
-<script>window.__INITIAL__ = {}</script>
+<script>window.__INITIAL__ = {
+  'todos': [
+    {
+      text: 'This app',
+      id: '1',
+      finished: true
+    },
+    {
+      text: 'weights just',
+      id: 2,
+      finished: false
+    },
+    {
+      text: 'around 7KB, not kidding!',
+      id: 3,
+      finished: true
+    }
+  ]
+}</script>
 <script src="./dist/bundle.js"></script>
 </html>

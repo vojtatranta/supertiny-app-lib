@@ -91,7 +91,7 @@ const render = async((vdom, el, firstTime = false) => {
     el.appendChild(vdom)
   }
   let t1 = performance.now()
-  console.log('render', (t1 - t0).toFixed(4))
+  console.log('render', (t1 - t0).toFixed(4) + 'ms')
 })
 
 const DOM = createDOM(document)
@@ -106,20 +106,32 @@ const addText = (addText, action) => {
 
 
 const todos = (todos, action) => {
-  switch(action.TYPE) {
+  switch(action.type) {
     case 'ADD_TODO':
-      return todos.concat([
-        {
+      return todos.concat(
+        [{
           text: action.text,
+          finished: false,
           id: new Date().getTime()
-        }
-      ])
+        }]
+      )
+
     case 'ADD_BATCH_TODO':
       return action.todos
+
     case 'DELETE_TODO':
       return todos.filter(todo => {
         return todo.id != action.id
       })
+
+    case 'TOGGLE_FINISHED':
+      let index = todos.indexOf(action.todo)
+      if (~index) {
+        todos[index].finished = !action.todo.finished
+        return todos.slice()
+      } else {
+        return todos
+      }
   }
 
   return todos
@@ -198,9 +210,7 @@ window.lotsOfTodos = (howMuch = 1000) => {
 }
 
 store.listen(state => {
-  console.time('render')
   render(app(state, { history, DOM, dispatch }), el)
-  console.timeEnd('render')
 })
 
 

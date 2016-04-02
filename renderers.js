@@ -4,6 +4,10 @@ const areSame = (lastProps, props) => {
     return true
   }
 
+  if (Object.keys(lastProps).length == 0 && Object.keys(props) == 0) {
+    return true
+  }
+
   return Object.keys(props).every(key => {
     return lastProps[key] === props[key]
   })
@@ -11,11 +15,11 @@ const areSame = (lastProps, props) => {
 
 
 const shouldComponentUpdate = (component) => {
-  let lastProps = {},
+  var lastProps = {},
       renderedComponent = null
 
   return (...args) => {
-    if (!areSame(lastProps, args[1]) || !renderedComponent) {
+    if (!areSame(lastProps, args[0]) || !renderedComponent) {
       lastProps = args[0]
       renderedComponent = component(...args)
       return renderedComponent
@@ -26,43 +30,36 @@ const shouldComponentUpdate = (component) => {
 }
 
 
-const form = shouldComponentUpdate(({ addText = '' }, { DOM, dispatch }) => {
+const form = shouldComponentUpdate((state, { DOM, dispatch }) => {
+
 
   const onToDoFormSubmit = (ev) => {
     ev.preventDefault()
-    const txt = DOM.doc.getElementById('todo-textarea')
-    if (txt.value.length == 0) return
+    const txt = DOM.doc.getElementById('new-todo')
+    if (txt.value.length === 0) return
     dispatch({
-      TYPE: 'ADD_TODO',
+      type: 'ADD_TODO',
       text: txt.value
     })
   }
 
-  return DOM.form({
-      id: 'todo-form',
-      submit: onToDoFormSubmit
+  return DOM.div({
+      id: 'header'
     },
-    DOM.div({
-      className: 'form-group',
-    }, DOM.input({
-        id: 'todo-textarea',
-        className: 'todo-textarea',
-        type: 'text',
-        value: addText,
-        keyup: (ev) => {
-          dispatch({
-            TYPE: 'ADD_TEXT_CHANGE',
-            value: ev.target.value
-          })
-        }
-      })
-    ),
-    DOM.div({
-      className: 'form-btns'
-    },
-      DOM.button({
-        type: 'submit'
-      }, 'Add TODO')
+    DOM.form({
+        id: 'todo-form',
+        submit: onToDoFormSubmit
+      },
+      DOM.div({
+        className: 'form-group',
+      }, DOM.input({
+          id: 'new-todo',
+          className: 'todo-textarea',
+          placeholder: 'What needs to be done?',
+          type: 'text',
+          submit: onToDoFormSubmit
+        })
+      )
     )
   )
 })
@@ -70,27 +67,49 @@ const form = shouldComponentUpdate(({ addText = '' }, { DOM, dispatch }) => {
 
 const renderItem = shouldComponentUpdate(({ selectedTodoId, todo }, { DOM, dispatch}) => {
 
-  const deleteTodo = (ev) => {
+  const deleteTodo = (ev) => dispatch({
+    type: 'DELETE_TODO',
+    id: todo.id,
+    text: todo.text
+  })
+
+  const toggleFinished = (ev) => {
+    ev.preventDefault()
     dispatch({
-      TYPE: 'DELETE_TODO',
-      id: todo.id,
-      text: todo.text
+      type: 'TOGGLE_FINISHED',
+      todo: todo
     })
+  }
+
+  let checkBoxState = {
+    className: 'toggle',
+    type: 'checkbox',
+    change: toggleFinished
+  }
+
+  if (todo.finished) {
+    checkBoxState.checked = true
   }
 
   return DOM.li({
       className: todo.id == selectedTodoId ? 'todo-item todo--selected': 'todo-item'
     },
-    DOM.span({}, todo.text),
-    DOM.span({
-      click: deleteTodo,
-      className: 'pull-right close-icon'
-    }, 'X'))
+    DOM.div({
+      className: 'view',
+      },
+      DOM.input(checkBoxState),
+      DOM.label({}, todo.text),
+      DOM.button({
+        click: deleteTodo,
+        className: 'destroy pull-right close-icon'
+      })
+    )
+  )
 })
 
 const todosList = shouldComponentUpdate(({ selectedTodoId, todos }, { DOM, dispatch }) => {
   return DOM.ul({
-      className: 'todo-list',
+      id: 'todo-list',
     }, todos.map(todo => renderItem({ selectedTodoId, todo }, { DOM,  dispatch }))
   )
 })
@@ -110,20 +129,32 @@ const link = shouldComponentUpdate(({ path, text }, { history, DOM, dispatch }) 
 })
 
 const router = shouldComponentUpdate((state, services) => {
-  return services.components[state.location](state, services)
+  const handler = services.components[state.location]
+  if (handler) {
+    return handler(state, services)
+  } else {
+    return services.components['!!NOT_FOUND!!'](state, services)
+  }
 })
 
 const todos = shouldComponentUpdate((state, services) => {
   const { DOM } = services
+  const unFinishedTodosCount = state.todos.filter(todo => !todo.finished).length
+
   return DOM.div({
-      className: 'app'
+      id: 'todoapp'
     },
     DOM.h1({},
-      'What needs to be done?'),
-    DOM.div({},
-      link({ text: 'O aplikaci', 'path': '/about' }, services)),
-    form({ addText: state.addText }, services),
-    todosList({ todos: state.todos, selectedTodoId: state.selectedTodoId }, services)
+      'todos'),
+    form({}, services),
+    todosList({ todos: state.todos, selectedTodoId: state.selectedTodoId }, services),
+    DOM.div({
+      id: 'footer',
+    }, DOM.span({ id: 'todo-count' },
+      DOM.strong({}, String(unFinishedTodosCount)), ' items left')),
+    DOM.div({
+      className: 'text-center footer-links'
+    }, link({ text: 'About this library', 'path': '/about', className: 'link link--about' }, services))
   )
 })
 
@@ -138,7 +169,8 @@ const app = (state, services) => {
     Object.assign(services, {
       components: {
         '/': todos,
-        '/about': about
+        '/about': about,
+        '!!NOT_FOUND!!': todos
       }
     })
   )

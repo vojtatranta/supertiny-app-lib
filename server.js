@@ -25,7 +25,7 @@ app.get('*', function(req, res) {
     HTML
     .replace('{APP}', '')
     .replace('{STATE}', JSON.stringify(state))
-    .replace('{BUNDLE_PATH}', PROD ? '/bundle.js' : '//localhost:9000/static/bundle.js')
+    .replace('{BUNDLE_PATH}', PROD ? '/bundle.js' : '//localhost:9000/bundle.js')
     .replace('{STYLES_BUNDLE}', PROD ? '/style.css' : '')
   )
 

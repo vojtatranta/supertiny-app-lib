@@ -6,14 +6,12 @@ var PROD = process.env.NODE_ENV == 'production'
 module.exports = {
   devtool: PROD ? null : 'cheap-module-eval-source-map',
   entry: PROD ? './app' : [
-    'webpack-dev-server/client?http://localhost:9000',
     'webpack/hot/dev-server',
     './'
   ],
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
-    publicPath: PROD ? null : 'http://localhost:9000/static/'
   },
   plugins: PROD ?
     [
@@ -35,7 +33,7 @@ module.exports = {
   module: {
     loaders: [{
       test: /\.js$/,
-      loaders: PROD ? ['babel'] : ['babel'],
+      loaders: ['babel'],
       exclude: /node_modules/,
       include: __dirname
     },
@@ -45,7 +43,7 @@ module.exports = {
     },
     {
       test: /\.css$/,
-      loader: PROD ? ExtractTextPlugin.extract('style-loader', 'style!css-loader?minimize') : 'style!css'
+      loader: PROD ? ExtractTextPlugin.extract('style-loader', 'css-loader?minimize') : 'css'
     },
     {
       test: /.*\.(gif|png|jpe?g|svg)$/i,
