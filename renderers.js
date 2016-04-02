@@ -41,6 +41,8 @@ const form = shouldComponentUpdate((state, { DOM, dispatch }) => {
       type: 'ADD_TODO',
       text: txt.value
     })
+
+    txt.value = ''
   }
 
   return DOM.div({
