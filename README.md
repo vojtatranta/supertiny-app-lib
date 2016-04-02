@@ -1,4 +1,4 @@
-# Supertiny redux-like, react-like app library TRY IT! (http://vojtatranta.github.io/supertiny-app-lib/)[http://vojtatranta.github.io/supertiny-app-lib/]
+# Supertiny redux-like, react-like app library [TRY IT!](http://vojtatranta.github.io/supertiny-app-lib/)
 
 I was terryfied by size of all Todo apps.
 
@@ -6,7 +6,7 @@ So I build tiny "framework" to understand how Redux and React work.
 
 I came up with this **experimental** library, that has practically all the features that has React with Redux.
 
-Everything in package that is just **6.4kB**!
+Everything in package that is just **8kB**!
 
 ## Features
 * Server-side rendering
