@@ -43,7 +43,7 @@ module.exports = {
     },
     {
       test: /\.css$/,
-      loader: PROD ? ExtractTextPlugin.extract('style-loader', 'css-loader?minimize') : 'css'
+      loader: PROD ? ExtractTextPlugin.extract('style-loader', 'css-loader?minimize') : 'style!css'
     },
     {
       test: /.*\.(gif|png|jpe?g|svg)$/i,
