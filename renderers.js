@@ -164,7 +164,7 @@ const about = (state, { DOM, dispatch }) => {
   return DOM.div({},
     DOM.h1({}, 'Supertiny application library?'),
     DOM.p({}, 'What does "supertiny" stands for? Well, just check your dev tools and go to "Network tab".'),
-    DOM.p({}, 'You will see that whole bundle for this very small todo app weights just around ', DOM.strong({}, '7KBs! (gziped just 4KBs)')),
+    DOM.p({}, 'You will see that whole bundle for this very small todo app weights just around ', DOM.strong({}, '8KBs! (gziped just 4KBs)')),
     DOM.h2({}, 'What can it do?'),
     DOM.p({}, 'Well, not much. There is no DOM diffing so app tree is rerendered every time. However shouldComponentupdate decorator works well, so app is still fast'),
     DOM.p({}, 'And as you can see, routing works well either, but it does not support older browser. Well, I wanted to keep this library with no dependency...'),
