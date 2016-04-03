@@ -59,6 +59,7 @@ const async = (fn) => {
 const render = (vdomFn, vdomFnArgs, el, firstTime = false) => {
   let t0 = window.performance.now()
   let vdom = vdomFn.apply(null, vdomFnArgs)
+
   if (firstTime && el.innerHTML.length > 0) {
     const flattenedElements = flattenElementTree(el, [ vdom ])
     const matchedEvents = getElementAndHandler(flattenedElements)
