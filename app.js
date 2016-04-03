@@ -65,8 +65,9 @@ const async = (fn) => {
 }
 
 
-const render = (vdom, el, firstTime = false) => {
+const render = (vdomFn, vdomFnArgs, el, firstTime = false) => {
   let t0 = performance.now()
+  let vdom = vdomFn.apply(null, vdomFnArgs)
   if (firstTime && el.innerHTML.length > 0) {
     const flattenedElements = flattenElementTree(el, [ vdom ])
     const matchedEvents = getElementAndHandler(flattenedElements)
@@ -208,12 +209,12 @@ window.lotsOfTodos = (howMuch = 1000) => {
 }
 
 store.listen(state => {
-  render(app(state, { history, DOM, dispatch }), el)
+  render(app, [state, { history, DOM, dispatch }], el)
 })
 
 
 //bind listeners + is server-side / not
-render(app(initialState, { history, DOM, dispatch }), el, el.innerHTML.length)
+render(app, [initialState, { history, DOM, dispatch }], el, el.innerHTML.length)
 
 
 
