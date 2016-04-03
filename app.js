@@ -145,12 +145,12 @@ const location = (location, action) => {
   return location
 }
 
-const store = createStore({ todos, addText, location })
-
 let initialState = window.__INITIAL__
+const store = createStore(initialState, { todos, addText, location })
+
 initialState.location = window.location.pathname
 
-const dispatch = createDispatch(initialState, store)
+const dispatch = createDispatch(store)
 const el = document.getElementById('app')
 
 const createHistory = (window, history, location, dispatch) => {
