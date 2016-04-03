@@ -1,37 +1,7 @@
-
-const areSame = (lastProps, props) => {
-  if (lastProps === props) {
-    return true
-  }
-
-  if (Object.keys(lastProps).length == 0 && Object.keys(props) == 0) {
-    return true
-  }
-
-  return Object.keys(props).every(key => {
-    return lastProps[key] === props[key]
-  })
-}
-
-
-const shouldComponentUpdate = (component) => {
-  var lastProps = {},
-      renderedComponent = null
-
-  return (...args) => {
-    if (!areSame(lastProps, args[0]) || !renderedComponent) {
-      lastProps = args[0]
-      renderedComponent = component(...args)
-      return renderedComponent
-    } else {
-      return renderedComponent
-    }
-  }
-}
+import shouldComponentUpdate from './should-component-update'
 
 
 const form = shouldComponentUpdate((state, { DOM, dispatch }) => {
-
 
   const onToDoFormSubmit = (ev) => {
     ev.preventDefault()
@@ -67,7 +37,7 @@ const form = shouldComponentUpdate((state, { DOM, dispatch }) => {
 })
 
 
-const renderItem = shouldComponentUpdate(({ selectedTodoId, todo }, { DOM, dispatch}) => {
+const renderItem = shouldComponentUpdate((todo, { DOM, dispatch}) => {
 
   const deleteTodo = (ev) => dispatch({
     type: 'DELETE_TODO',
@@ -94,7 +64,7 @@ const renderItem = shouldComponentUpdate(({ selectedTodoId, todo }, { DOM, dispa
   }
 
   return DOM.li({
-      className: todo.id == selectedTodoId ? 'todo-item todo--selected': 'todo-item'
+      className: todo.id == null ? 'todo-item todo--selected': 'todo-item'
     },
     DOM.div({
       className: 'view',
@@ -112,7 +82,7 @@ const renderItem = shouldComponentUpdate(({ selectedTodoId, todo }, { DOM, dispa
 const todosList = shouldComponentUpdate(({ selectedTodoId, todos }, { DOM, dispatch }) => {
   return DOM.ul({
       id: 'todo-list',
-    }, todos.map(todo => renderItem({ selectedTodoId, todo }, { DOM,  dispatch }))
+    }, todos.map(todo => renderItem(todo, { DOM,  dispatch }))
   )
 })
 
@@ -130,14 +100,14 @@ const link = shouldComponentUpdate(({ path, text }, { history, DOM, dispatch }) 
   }, text)
 })
 
-const router = shouldComponentUpdate((state, services) => {
+const router = (state, services) => {
   const handler = services.components[state.location]
   if (handler) {
     return handler(state, services)
   } else {
     return services.components['!!NOT_FOUND!!'](state, services)
   }
-})
+}
 
 const todos = shouldComponentUpdate((state, services) => {
   const { DOM } = services
@@ -174,15 +144,17 @@ const about = (state, { DOM, dispatch }) => {
 
 const app = (state, services) => {
 
-  return router(
-    state,
-    Object.assign(services, {
-      components: {
-        '/': todos,
-        '/about': about,
-        '!!NOT_FOUND!!': todos
-      }
-    })
+  return services.DOM.div({},
+    router(
+      state,
+      Object.assign(services, {
+        components: {
+          '/': todos,
+          '/about': about,
+          '!!NOT_FOUND!!': todos
+        }
+      })
+    )
   )
 }
 

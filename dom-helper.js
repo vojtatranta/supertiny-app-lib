@@ -1,4 +1,5 @@
-export default (doc) => {
+
+export default (doc, customRenderers = {}) => {
 
   const adjustKey = (key) => {
     if (key.toLowerCase() == 'classname') {
@@ -6,6 +7,17 @@ export default (doc) => {
     }
 
     return key
+  }
+
+  const getCustomTypeRenderer = (renderers, type) => {
+    const renderer = renderers[type]
+
+    if (!Boolean(renderer)) {
+      throw new Error(`No renderer specified for type ${type}.
+        Pass customRenderers object with key of ${type} and function as value that is capable of rendering element type.`)
+    }
+
+    return renderer
   }
 
   const createEl = (tag, attrs, content, children) => {
@@ -30,16 +42,15 @@ export default (doc) => {
     }
 
     if (children) {
-      children.forEach(child => {
+      children.forEach((child, i) => {
         if (Array.isArray(child)) {
           child.map(subChild => {
             el.appendChild(subChild)
           })
         } else {
-          if (child['state'] && child['component']) {
-            let dummyEl = doc.createElement('div')
-            dummyEl.elementFn = child
-            el.appendChild(dummyEl)
+          if (Boolean(child['render_type'])) {
+            const renderer = getCustomTypeRenderer(customRenderers, child['render_type'])
+            el.appendChild(renderer(child, i))
           } else if (typeof child === 'string') {
             el.appendChild(doc.createTextNode(child))
           } else {

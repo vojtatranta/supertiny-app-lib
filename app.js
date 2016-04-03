@@ -23,12 +23,7 @@ const flattenElementTree = (rootEl, elements, parentIndex = []) => {
   for (let i in elements) {
     const index = parentIndex.concat([i])
     let element = elements[i]
-    if (Boolean(element.elementFn)) {
-      const update = createElementUpdate(rootEl, index, element.elementFn.component)
-      let renderedElement = element.elementFn.component(update, element.elementFn.state)
-      replaceElement(element, renderedElement)
-      element = renderedElement
-    }
+
     flatElements.push([element, index])
     if (element.children) {
       flatElements = flatElements.concat(flattenElementTree(rootEl, element.children, index))
@@ -70,7 +65,7 @@ const async = (fn) => {
 }
 
 
-const render = async((vdom, el, firstTime = false) => {
+const render = (vdom, el, firstTime = false) => {
   let t0 = performance.now()
   if (firstTime && el.innerHTML.length > 0) {
     const flattenedElements = flattenElementTree(el, [ vdom ])
@@ -86,15 +81,17 @@ const render = async((vdom, el, firstTime = false) => {
       }
     }
   } else {
-    setTimeout(() => flattenElementTree(el, [ vdom ]), 0)
     el.innerHTML = ''
     el.appendChild(vdom)
   }
   let t1 = performance.now()
   console.log('render', (t1 - t0).toFixed(4) + 'ms')
-})
+}
 
-const DOM = createDOM(document)
+
+const DOM = createDOM(document, {
+  'SHOULD_COMPONENT_UPDATE': (elementType, scopedIndex) => elementType.component(elementType.id + scopedIndex)
+})
 
 const addText = (addText, action) => {
   switch (action.TYPE) {
@@ -106,6 +103,7 @@ const addText = (addText, action) => {
 
 
 const todos = (todos, action) => {
+
   switch(action.type) {
     case 'ADD_TODO':
       return todos.concat(
@@ -204,7 +202,7 @@ window.lotsOfTodos = (howMuch = 1000) => {
   }
 
   dispatch({
-    TYPE: 'ADD_BATCH_TODO',
+    type: 'ADD_BATCH_TODO',
     todos
   })
 }
