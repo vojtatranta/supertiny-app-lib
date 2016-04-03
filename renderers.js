@@ -126,7 +126,9 @@ const todos = shouldComponentUpdate((state, services) => {
       DOM.strong({}, String(unFinishedTodosCount)), ' items left')),
     DOM.div({
       className: 'text-center footer-links'
-    }, link({ text: 'About this library', 'path': '/about', className: 'link link--about' }, services))
+    },
+    DOM.p({}, 'In console call ', DOM.strong({}, 'lotsOfTodos()'),  ' to add 1000 todos (count might be specified via argument)'),
+    link({ text: 'About this library', 'path': '/about', className: 'link link--about' }, services))
   )
 })
 
