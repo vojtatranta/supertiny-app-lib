@@ -6,7 +6,10 @@ const form = shouldComponentUpdate((state, { DOM, dispatch }) => {
   const onToDoFormSubmit = (ev) => {
     ev.preventDefault()
     const txt = DOM.doc.getElementById('new-todo')
-    if (txt.value.length === 0) return
+    if (txt.value.length === 0) {
+      return
+    }
+
     dispatch({
       type: 'ADD_TODO',
       text: txt.value
@@ -36,21 +39,78 @@ const form = shouldComponentUpdate((state, { DOM, dispatch }) => {
   )
 })
 
+const todoItemLabel = shouldComponentUpdate((todo, { DOM, dispatch, toggleEditing, quitEditing }) => {
 
-const renderItem = shouldComponentUpdate((todo, { DOM, dispatch}) => {
+  const handleKeyup = (ev, input) => {
+    if (ev.keyCode === 27) {
+      return toggleEditing()
+    }
 
-  const deleteTodo = (ev) => dispatch({
+    if (ev.keyCode !== 13) {
+      return
+    }
+
+    dispatch({
+      type: 'EDIT_TODO_TEXT',
+      todo: todo,
+      text: input.value
+    })
+
+    quitEditing()
+
+    ev.stopPropagation()
+  }
+
+  return DOM.div({},
+    Boolean(todo.editing) ? 
+    DOM.input({
+      value: todo.text,
+      focusout: quitEditing,
+      classname: 'edit',
+      autofocus: true,
+      id: `edit-${todo.id}`,
+      keyup: handleKeyup
+    }) :
+    DOM.label({
+      dblclick: toggleEditing
+    }, todo.text)
+  )
+})
+
+
+const todoItem = shouldComponentUpdate((todo, { DOM, dispatch }) => {
+
+  const quitEditing = () => {
+    return dispatch({
+      type: 'QUIT_EDITING'
+    })
+  }
+
+  const deleteTodo = () => dispatch({
     type: 'DELETE_TODO',
     id: todo.id,
     text: todo.text
   })
 
-  const toggleFinished = (ev) => {
+  const toggleFinished = ev => {
     ev.preventDefault()
+    quitEditing()
+
     dispatch({
       type: 'TOGGLE_FINISHED',
       todo: todo
     })
+  }
+
+  const toggleEditing = () => {
+    dispatch({
+      type: 'TOGGLE_EDITING',
+      todo: todo
+    })
+
+    if (!Boolean(todo.editing)) {
+      DOM.doc.getElementById(`edit-${todo.id}`).select()
+    }
   }
 
   let checkBoxState = {
@@ -64,27 +124,29 @@ const renderItem = shouldComponentUpdate((todo, { DOM, dispatch}) => {
   }
 
   return DOM.li({
-      className: todo.id == null ? 'todo-item todo--selected': 'todo-item'
+      className: Boolean(todo.editing) ? 'editing todo-item' : 'todo-item',
     },
     DOM.div({
       className: 'view',
       },
       DOM.input(checkBoxState),
-      DOM.label({}, todo.text),
       DOM.button({
         click: deleteTodo,
         className: 'destroy pull-right close-icon'
       })
-    )
+    ),
+    todoItemLabel(todo, { DOM, dispatch, toggleEditing, quitEditing })
   )
 })
+
 
 const todosList = shouldComponentUpdate(({ selectedTodoId, todos }, { DOM, dispatch }) => {
   return DOM.ul({
       id: 'todo-list',
-    }, todos.map(todo => renderItem(todo, { DOM,  dispatch }))
+    }, todos.map(todo => todoItem(todo, { DOM,  dispatch }))
   )
 })
+
 
 const link = shouldComponentUpdate(({ path, text }, { history, DOM, dispatch }) => {
 
@@ -100,24 +162,16 @@ const link = shouldComponentUpdate(({ path, text }, { history, DOM, dispatch }) 
   }, text)
 })
 
-const router = (state, services) => {
-  const handler = services.components[state.location]
-  if (handler) {
-    return handler(state, services)
-  } else {
-    return services.components['!!NOT_FOUND!!'](state, services)
-  }
-}
 
 const todos = shouldComponentUpdate((state, services) => {
+
   const { DOM } = services
   const unFinishedTodosCount = state.todos.filter(todo => !todo.finished).length
 
   return DOM.div({
       id: 'todoapp'
     },
-    DOM.h1({},
-      'todos'),
+    DOM.h1({}, 'todos'),
     form({}, services),
     todosList({ todos: state.todos, selectedTodoId: state.selectedTodoId }, services),
     DOM.div({
@@ -132,7 +186,7 @@ const todos = shouldComponentUpdate((state, services) => {
   )
 })
 
-const about = (state, { DOM, dispatch }) => {
+const about = (state, { DOM }) => {
   return DOM.div({},
     DOM.h1({}, 'Supertiny application library?'),
     DOM.p({}, 'What does "supertiny" stands for? Well, just check your dev tools and go to "Network tab".'),
@@ -140,9 +194,20 @@ const about = (state, { DOM, dispatch }) => {
     DOM.h2({}, 'What can it do?'),
     DOM.p({}, 'Well, not much. There is no DOM diffing so app tree is rerendered every time. However shouldComponentupdate decorator works well, so app is still fast'),
     DOM.p({}, 'And as you can see, routing works well either, but it does not support older browser. Well, I wanted to keep this library with no dependency...'),
-    DOM.p({}, "For more info, check githup repo's ", DOM.a({href: 'https://github.com/vojtatranta/supertiny-app-lib'}, 'README.md.'))
+    DOM.p({}, "For more info, check githup repo's ", DOM.a({ href: 'https://github.com/vojtatranta/supertiny-app-lib' }, 'README.md.'))
   )
 }
+
+
+const router = (state, services) => {
+  const handler = services.components[state.location]
+  if (handler) {
+    return handler(state, services)
+  } else {
+    return services.components['!!NOT_FOUND!!'](state, services)
+  }
+}
+
 
 const app = (state, services) => {
 
@@ -162,6 +227,6 @@ const app = (state, services) => {
 
 
 export default {
-  renderItem,
+  todoItem,
   app
 }

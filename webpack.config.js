@@ -1,7 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var PROD = process.env.NODE_ENV == 'production'
+var PROD = process.env.NODE_ENV === 'production'
 
 module.exports = {
   devtool: PROD ? null : 'cheap-module-eval-source-map',

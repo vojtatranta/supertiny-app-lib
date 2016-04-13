@@ -4,7 +4,7 @@ export function areSameShallow(lastProps, props) {
     return true
   }
 
-  if (Object.keys(lastProps).length == 0 && Object.keys(props) == 0) {
+  if (Object.keys(lastProps).length === 0 && Object.keys(props) === 0) {
     return true
   }
 
@@ -21,6 +21,7 @@ export default function shouldComponentUpdate(component) {
   var lastInstancesProps = {},
       renderedComponentInstances = {}
 
+  counter++
   return (...args) => {
 
     return {
@@ -32,7 +33,7 @@ export default function shouldComponentUpdate(component) {
         let props = args[0]
 
         if (!lastProps || !renderedComponentInstance || !areSameShallow(lastProps, props)) {
-          lastInstancesProps[componentIdentifier] = { ...props }
+          lastInstancesProps[componentIdentifier] = props
           renderedComponentInstances[componentIdentifier] = component(...args)
           return renderedComponentInstances[componentIdentifier]
         } else {

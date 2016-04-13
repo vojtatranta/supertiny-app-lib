@@ -2,7 +2,7 @@
 export default (doc, customRenderers = {}) => {
 
   const adjustKey = (key) => {
-    if (key.toLowerCase() == 'classname') {
+    if (key.toLowerCase() === 'classname') {
       key = 'class'
     }
 
@@ -24,14 +24,16 @@ export default (doc, customRenderers = {}) => {
     var el = doc.createElement(tag)
     if (attrs) {
       Object.keys(attrs).forEach(key => {
-        if (typeof attrs[key] != 'function') {
+        if (typeof attrs[key] !== 'function') {
           el.setAttribute(adjustKey(key), attrs[key])
         } else {
           if (!el.events) {
             el.events = {}
           }
           el.events[key] = attrs[key]
-          el.addEventListener(key, attrs[key])
+          el.addEventListener(key, function(ev) {
+            attrs[key](ev, this)
+          })
         }
       })
     }
@@ -68,10 +70,10 @@ export default (doc, customRenderers = {}) => {
       if (Array.isArray(content)) {
         children = content
         content = null
-      } else if (typeof content != 'string') {
+      } else if (typeof content !== 'string') {
         children = Array.prototype.slice.apply(arguments).slice(1, arguments.length)
         content = null
-      } else if (typeof content == 'string') {
+      } else if (typeof content === 'string') {
         children = Array.prototype.slice.apply(arguments).slice(2, arguments.length)
       }
 

@@ -1,21 +1,12 @@
+// @flow
+
 import createDOM from './dom-helper'
 import createDispatch from './lib/create-dispatch'
 import createStore from './lib/create-store'
-import { app, renderlayer } from './renderers'
+import { app } from './components/renderers'
 
 import sass from './styles/style.css'
 
-
-const replaceElement = (oldEl, newEl) => {
-  oldEl.parentNode.replaceChild(newEl, oldEl)
-}
-
-const createElementUpdate = (rootEl, path, componentFn) => {
-  return (state) => {
-    let element = getElementByPath(path, rootEl)
-    replaceElement(element, componentFn(createElementUpdate(rootEl, path, componentFn), state))
-  }
-}
 
 const flattenElementTree = (rootEl, elements, parentIndex = []) => {
   var flatElements = []
@@ -66,7 +57,7 @@ const async = (fn) => {
 
 
 const render = (vdomFn, vdomFnArgs, el, firstTime = false) => {
-  let t0 = performance.now()
+  let t0 = window.performance.now()
   let vdom = vdomFn.apply(null, vdomFnArgs)
   if (firstTime && el.innerHTML.length > 0) {
     const flattenedElements = flattenElementTree(el, [ vdom ])
@@ -85,7 +76,7 @@ const render = (vdomFn, vdomFnArgs, el, firstTime = false) => {
     el.innerHTML = ''
     el.appendChild(vdom)
   }
-  let t1 = performance.now()
+  let t1 = window.performance.now()
   console.log('render', (t1 - t0).toFixed(4) + 'ms')
 }
 
@@ -106,6 +97,46 @@ const addText = (addText, action) => {
 const todos = (todos, action) => {
 
   switch(action.type) {
+    case 'EDIT_TODO_TEXT':
+      const matchedTodos = todos.filter(todo => todo.id === action.todo.id)
+      if (matchedTodos.length) {
+        const modifiedTodos = matchedTodos.map(todo => Object.assign({}, todo, { text: action.text, editing: false }))
+        let modifiedTodoIds = {}
+        modifiedTodos.forEach(todo => modifiedTodoIds[todo.id] = todo)
+
+        return todos.map(todo => {
+          if (modifiedTodoIds[todo.id]) {
+            return modifiedTodoIds[todo.id]
+          } else {
+            return todo
+          }
+        })
+      } else {
+        return todos
+      }
+
+    case 'QUIT_EDITING':
+      return todos.map(todo => {
+        if (todo.editing) {
+          return Object.assign({}, todo, { editing: false })
+        } else {
+          return todo
+        }
+      })
+
+    case 'TOGGLE_EDITING':
+      return todos.map(todo => {
+        if (String(todo.id) === String(action.todo.id)) {
+          return Object.assign({}, todo, { editing: !Boolean(action.todo.editing) })
+        }
+
+        if (todo.editing) {
+          return Object.assign({}, todo, { editing: false })
+        }
+
+        return todo
+      })
+
     case 'ADD_TODO':
       return todos.concat(
         [{
@@ -120,13 +151,14 @@ const todos = (todos, action) => {
 
     case 'DELETE_TODO':
       return todos.filter(todo => {
-        return todo.id != action.id
+        return todo.id !== action.id
       })
 
     case 'TOGGLE_FINISHED':
       let index = todos.indexOf(action.todo)
+
       if (~index) {
-        todos[index].finished = !action.todo.finished
+        todos[index] = Object.assign({}, action.todo, { finished: !Boolean(action.todo.finished) })
         return todos.slice()
       } else {
         return todos
@@ -139,7 +171,7 @@ const todos = (todos, action) => {
 const location = (location, action) => {
   switch(action.TYPE) {
     case 'LOCATION_CHANGE':
-      if (location != action.location) {
+      if (location !== action.location) {
         return action.location
       }
   }
@@ -178,11 +210,11 @@ const createHistory = (window, history, location, dispatch) => {
     dispatchLocationChange()
   }
 
-  const locationChangeListener = (ev) => {
+  const locationChangeListener = () => {
     dispatchLocationChange()
   }
 
-  window.onpopstate = locationChangeListener
+  window.addEventListener('popstate', locationChangeListener)
 
   return {
     back,

@@ -3,11 +3,11 @@ const fs = require('fs')
 const express = require('express')
 const compress = require('compression')
 
-const renderers = require('./renderers')
+const renderers = require('./components/renderers')
 const createDom = require('./dom-helper')
 const doc = require('./server/document')
 
-const PROD = process.env.NODE_ENV == 'production'
+const PROD = process.env.NODE_ENV === 'production'
 
 const app = express()
 
